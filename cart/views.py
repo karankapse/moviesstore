@@ -29,5 +29,3 @@ def clear(request):
     request.session['cart'] = {}
     return redirect('cart.index')
 
-# Need to update movies.show template once it exists
-# Need to update /Movie_Store/templates/base.html once it exists
