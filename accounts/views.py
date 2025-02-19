@@ -4,6 +4,7 @@ from .forms import CustomUserCreationForm, CustomErrorList
 from django.shortcuts import redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.contrib.auth.hashers import make_password
 @login_required
 def logout(request):
     auth_logout(request)
@@ -51,3 +52,38 @@ def orders(request):
     template_data['orders'] = request.user.order_set.all()
     return render(request, 'accounts/orders.html',
         {'template_data': template_data})
+
+
+def reset_password_request(request):
+    template_data = {'title': 'Reset Password'}
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        try:
+            user = User.objects.get(username=username)
+            request.session['reset_user_id'] = user.id  # Store user ID in session
+            return redirect('accounts.reset_password_confirm')
+        except User.DoesNotExist:
+            template_data['error'] = "Username not found."
+
+    return render(request, 'accounts/reset_password_request.html', {'template_data': template_data})
+
+
+def reset_password_confirm(request):
+    if 'reset_user_id' not in request.session:
+        return redirect('accounts.reset_password_request')  # Redirect if session is lost
+
+    template_data = {'title': 'Set New Password'}
+    if request.method == 'POST':
+        new_password = request.POST.get('new_password')
+        confirm_password = request.POST.get('confirm_password')
+
+        if new_password != confirm_password:
+            template_data['error'] = "Passwords do not match."
+        else:
+            user = User.objects.get(id=request.session['reset_user_id'])
+            user.password = make_password(new_password)  # Hash the new password
+            user.save()
+            del request.session['reset_user_id']  # Remove user ID from session
+            return redirect('accounts.login')
+
+    return render(request, 'accounts/reset_password_confirm.html', {'template_data': template_data})
