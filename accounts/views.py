@@ -1,5 +1,7 @@
+from django.contrib.auth.views import PasswordResetView
 from django.shortcuts import render
 from django.contrib.auth import login as auth_login, authenticate, logout as auth_logout
+from django.contrib.auth.forms import PasswordResetForm, UserCreationForm
 from .forms import CustomUserCreationForm, CustomErrorList
 from django.shortcuts import redirect
 from django.contrib.auth.decorators import login_required
@@ -43,6 +45,7 @@ def signup(request):
             template_data['form'] = form
             return render(request, 'accounts/signup.html',
                 {'template_data': template_data})
+
 
 @login_required
 def orders(request):
